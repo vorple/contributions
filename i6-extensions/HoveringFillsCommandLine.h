@@ -3,7 +3,7 @@
 !
 ! Licence: this file is public domain, but I would appreciate being credited in your game :)
 
-! This simple extension recreates an effect I first saw in DONTSEE / No Mires, a Spanish game which entered XComp3, which was written in Java.
+! This simple extension recreates a very cool effect I first saw in No Mires, a Spanish game by Edlobez, written in Java. I believe that game won XComp3, a competition for games which experiment with interfaces!
 ! The function "HoverFillLink" takes two arguments: the text, and the command. The text is displayed in a hyperlink; when the player hovers over the link, the command line fills with the command, and clicking on the link enters the command.
 
 Include "vorple.h";
