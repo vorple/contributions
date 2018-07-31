@@ -104,6 +104,7 @@ Array actionarray2 -> 100;
         if (obj has open) {return "close ";} else { return "open ";}
     }
     if (obj has container) {return "empty ";}
+    if (obj has enterable) {return "enter ";}
     return "use ";
 ];
 
