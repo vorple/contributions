@@ -1,0 +1,279 @@
+!==========================================================
+! Licence for that file and the media files: Creative Commons by-nc-sa
+Constant Story "Neon Vertex";
+
+Constant Headline
+ 	"^A Vorple sample game, by Hugo Labrande.^Type LICENSE for the licence^";
+Release 1;
+
+! Dev time : 3h40
+
+Replace OffersLight;
+
+Constant NO_SCORE;
+
+Include "vorple.h";
+Include "parser";
+Include "verblib";
+Include "vorple-command-prompt-control.h";
+Include "vorple-hyperlinks.h";
+Include "vorple-multimedia.h";
+Include "vorple-notifications.h";
+Include "vorple-screen-effects.h";
+Include "vorple-tooltips.h";
+
+
+! À chaque input, il faut remplacer le prompt par quelque chose avec un hyperlink
+! On ne peut pas le faire directement (Vorple_prompt est forcément une chaîne de caractères dans les extensions Inform)
+! On ne peut pas mettre ça dans un daemon ou un each_turn (sinon ça ne se fait pas après les "je ne comprends pas")
+! Solution maline : la statusline étant, elle, dessinée à chaque fois, on le met dans le rulebook de la status line
+Object linkOnPrompt "hyperlink on prompt" StatusLineRulebook
+    with description [; VorpleExecuteJavaScriptCommand("$($(haven.prompt.get()).find('#lineinput-prefix').contents()[0]).replaceWith('<br><a class=~vorple-link vorple-commandlink link-id666666666666 ~ href=~#~ data-command=~look~ data-silent=~false~>&gt;</a>')"); ];
+
+
+Include "achievements";
+!Include "HoveringFillsCommandLine";
+Include "RightClickCommands";
+
+
+[ OffersLight obj;
+  if (obj == nothing)
+    rfalse;
+  else
+    rtrue;
+];
+
+Object titlescreen ""
+    with description [;
+        VorpleHidePrompt();
+        ! Title
+        VorpleOpenHTMLTag("div", "center-align");
+        VorpleStyle(STYLE_STRONG);
+        print "N E O N   V E R T E X";
+        VorpleEndStyle();
+        VorpleCloseHTMLTag();
+        print "^";
+        VorpleCenterText("by Hugo Labrande");
+        print "^";
+        ! Gif
+        VorpleImage("titlescreen.gif", "Type IN to ", IMAGE_CENTERED);
+        ! Start link
+        VorpleOpenHTMLTag("div", "center-align");
+        VorpleStyle(STYLE_FANTASY);
+        VorpleLinkCommandText("in", "START", DONT_SHOW_COMMAND);
+        VorpleEndStyle();
+        VorpleCloseHTMLTag();
+	VorplePlayMusic("title-music.mp3", LOOP_MUSIC);
+    ],
+    in_to [; ClearScreen(); VorpleShowPrompt(); Banner(); VorplePlayMusic("rain-outside.mp3", LOOP_MUSIC); return parkade; ],
+has;
+
+
+Object parkade "On the parking lot"
+    with description [; print "You turn your back on the closed "; LucasClicks(restaurant); print ". You're good to go. Ready to roam the wild landscapes, and have a bit of fun elsewhere. Time to hit the road in your "; LucasClicks(car); "."; ],
+    in_to inside_car,
+    s_to backalley,
+has ;
+
+Object restaurant "restaurant" parkade
+    with description "A fancy restaurant, now closed for the night. You've never been - out of your price range. The place is closed, though you wonder if there's a back entrance... That'd be fun.",
+    name 'restaurant' 'cafe' 'fancy',
+    before [; Open: "The front door is locked.";
+    ],
+has openable concealed;
+
+Object backalley "Behind the restaurant"
+    with description [; print "Not much to see in the darkness here. There's a "; LucasClicks(backdoor); print ", I suppose, and a "; LucasClicks(dumpster); print "."; "";
+    ],
+    n_to parkade,
+has ;
+
+Object dumpster "dumpster" backalley
+    with description "It reeks of fish and oil. It's full.",
+    name 'dumpster' 'garbage' 'bin' 'container',
+    before [; Enter: if (wire in player) {"Nuh-uh, been there done that.";} else {move wire to player; "I guess... You dive in the dumpster and see what is there. That piece of wire looks like it'd be useful.";} ],
+has enterable concealed;
+
+Object wire "wire"
+    with description "A metal wire, a few inches long, pretty thin. Perfect for lockpicking.",
+    name 'wire' 'metal' 'lockpick' 'pick',
+has ;
+
+Object backdoor "back door" backalley
+    with description "Locked, of course - but the lock doesn't seem too sturdy.",
+    name 'back' 'door',
+    before [; Open: if (wire in player) {
+        give self open;
+        VorpleHidePrompt();
+        Lockpick.award();
+        VorpleImage("restaurant.jpg");
+        print "After a few seconds, the lock opens. You enter the restaurant, and have the feast of a lifetime...^";
+        if (isVorpleSupported()){
+            VorpleOpenHTMLTag("div", "center-align");
+            VorpleLinkCommandText("end", "THE END", DONT_SHOW_COMMAND);
+            VorpleCloseHTMLTag();
+        } else { print "^^THE END^^(Type 'end' to proceed.)";}
+        "";
+        } else {"It's locked.";} ],
+has door openable concealed;
+
+Object car "car" parkade
+    with description [; VorpleImage("car.jpg"); "Slick and dependable. It is waiting for you."; ],
+    name 'car' 'your' 'slick' 'dependable',
+    before [; Enter: VorplePlayMusic("rain-inside-car.mp3", LOOP_MUSIC); <<Go in_obj>>;
+        Attack: Fixer.award(); "You slam the roof of your car. The wipers, who were stuck, start moving again. Nice!";
+    ],
+has enterable concealed ;
+
+Object inside_car "Inside your car"
+    with description [;
+        VorpleHidePrompt();
+        print "Here you are. In your car. Many roads await you. You feel like having fun. What do you do?^^";
+        print "Do you go to the "; VorpleLinkCommandText("theater", "theater", DONT_SHOW_COMMAND);
+        print ", to a "; VorpleLinkCommandText("club", "club", DONT_SHOW_COMMAND);
+        print ", or to the "; VorpleLinkCommandText("casino", "casino", DONT_SHOW_COMMAND);
+        print "?";
+        "";
+    ],
+has ;
+
+
+Object endscreen ""
+    with description [;
+        ClearScreen();
+        VorpleHidePrompt();
+        ! Gif
+        VorpleImage("titlescreen.gif", " ", IMAGE_CENTERED);
+        ! Message
+        VorpleCenterText("This was the path you took; but there are many others...");
+        ! Start link
+        if (isVorpleSupported() == false) { print "^^(Type RESTART to restart)"; }
+        else {
+            VorpleOpenHTMLTag("div", "center-align");
+            VorpleStyle(STYLE_FANTASY);
+            VorpleLinkCommandText("RESTART", "RESTART", DONT_SHOW_COMMAND);
+            VorpleEndStyle();
+            VorpleCloseHTMLTag();
+            VorplePlayMusic("title-music.mp3", LOOP_MUSIC);
+        }
+    ],
+has;
+
+
+
+
+
+Include "Grammar";
+
+
+[ Initialise ;
+	VorpleInitialise();
+	AchievementsInit("neonvertex");
+	NOTIFICATION_DURATION=15;
+	lookmode = 2;	! Mode verbeux
+	inventory_style = ENGLISH_BIT+RECURSE_BIT+FULLINV_BIT;	! Inventaire décrit en une phrase
+	location = titlescreen;
+        return 2;
+];
+
+[ LicenseSub ;
+    print "This sample game has been written by Hugo Labrande. It is distributed under Creative Commons by-nc-sa License, which is available at https://creativecommons.org/licenses/by-nc-sa/2.0/.^^It is meant to showcase the capabilities of Vorple, by Juhana Leinonen, which is under MIT License.^^The media used in this game are:^ - Title screen: POTUS 3012, by Beeple (http://beeple.tumblr.com/post/119532497979/potus-3012-tbt-free-hd-visual-source-material)^ - Title music: Dark Hopeful Ambience, by PatrickLieberkind (https://freesound.org/people/PatrickLieberkind/sounds/396471/)^ - Background image: I never did write that love song, by Jim Nix (https://www.flickr.com/photos/jimnix/39159662530/)^ - Audi TTS, by Listers Group (https://www.flickr.com/photos/listersgroup/20555373522/)^ - Joyce Theater, NYC 6/2005, by Susan Sermoneta (https://www.flickr.com/photos/en321/19513570/)^ Hed Kandi - 10 years in Ibiza, by Carlitos (https://www.flickr.com/photos/carlitos/11051208056/)^ - WSCATL2017Casino-ALS-46, by Walker Stalker Con (https://www.flickr.com/photos/walkerstalkerphotos/38243113996/)^ - GINGER, by Les Hôtels JARO (https://www.flickr.com/photos/95006659@@64N04/9736630882/)^ - 1 Minute Rain (medium), by yzhamua (https://freesound.org/people/yzhamua/sounds/188655/)^ - Rain on a car roof, by Stevious42 (https://freesound.org/people/Stevious42/sounds/259652/)";
+    "";
+    ! https://www.flickr.com/search/?license=1%2C2%2C9%2C10&text=neon%20car&advanced=1&color_codes=9
+];
+
+Verb 'license'
+*       ->License;
+
+
+
+!==============
+! Achievements
+
+Achievement Lockpick "Lockpicker"
+  with description "picked the restaurant's lock",
+        ach_image "secure.jpg",
+has persistent;
+
+Achievement Fixer "Fixer"
+  with description "fixed your car",
+        ach_image "tool.jpg",
+has persistent ;
+
+Achievement Theater "Spectator"
+  with description "went to the theater",
+        ach_image "masks.jpg",
+has persistent;
+
+Achievement Club "Listener"
+  with description "went to a club",
+        ach_image "music.jpg",
+has persistent;
+
+Achievement Gambler "Gambler"
+  with description "went to a casino",
+        ach_image "stocks.jpg",
+has persistent;
+
+[ CasinoEndingSub;
+    if (player in inside_car) {
+        print "You decide to go to the casino.";
+        Gambler.award();
+        if (isVorpleSupported()){
+            VorpleOpenHTMLTag("div", "center-align");
+            VorpleLinkCommandText("end", "THE END", DONT_SHOW_COMMAND);
+            VorpleCloseHTMLTag();
+        } else { print "^^THE END^^(Type 'end' to proceed.)";}
+        "";
+    } else { "That's not a verb I recognise.";}
+];
+[ ClubEndingSub;
+    if (player in inside_car) {
+        print "You decide to go to the club.";
+        VorpleImage("club.jpg");
+        Club.award();
+        if (isVorpleSupported()){
+            VorpleOpenHTMLTag("div", "center-align");
+            VorpleLinkCommandText("end", "THE END", DONT_SHOW_COMMAND);
+            VorpleCloseHTMLTag();
+        } else { print "^^THE END^^(Type 'end' to proceed.)";}
+        "";
+    } else { "That's not a verb I recognise.";}
+];
+[ TheaterEndingSub;
+    if (player in inside_car) {
+        print "You decide to go to the theater.";
+        VorpleImage("theatre.jpg");
+        Theater.award();
+        if (isVorpleSupported()){
+            VorpleOpenHTMLTag("div", "center-align");
+            VorpleLinkCommandText("end", "THE END", DONT_SHOW_COMMAND);
+            VorpleCloseHTMLTag();
+        } else { print "^^THE END^^(Type 'end' to proceed.)";}
+        "";
+    } else { "That's not a verb I recognise.";}
+];
+
+[ EndScreenSub ;
+    if (player in inside_car || backdoor has open) { PlayerTo(endscreen); } else {"That's not a verb I recognise.";}
+];
+
+Verb 'casino'
+*   ->CasinoEnding;
+
+Verb 'club'
+*   ->ClubEnding;
+
+Verb 'theater'
+*   ->TheaterEnding;
+
+Verb 'end'
+*   ->EndScreen;
+
+! Direct restart (no "are you sure" prompt)
+[ RestSub;
+    @restart;
+    rtrue;
+];
+Extend 'restart' replace
+*   ->Rest;
