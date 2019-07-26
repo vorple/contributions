@@ -1011,7 +1011,11 @@ Global ach_on_this_line = 0;
     id = UniqueIdentifier();
     if (ach.ach_image ~= 0 && isVorpleSupported() ) {
                         VorpleOpenHTMLTag("td");
-                        VorpleImage(ach.ach_image, "", "", id);
+                        if (ach.ach_image ofclass String) {
+                            VorpleImage(ach.ach_image, "", "", id);
+                        } else {
+                            VorpleImage(ach.ach_image(), "", "", id);
+                        }
                         VorpleCloseHTMLTag();
     }
     
