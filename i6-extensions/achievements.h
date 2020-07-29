@@ -204,7 +204,7 @@ Class Achievement
            move self to FailedAchievements;
            if (achievements_notify &&
                    ((~~ach_loading) || self hasnt persistent)) {
-                #IfDef VORPLE_NOTIFICATIONS_LIBRARY;
+                #IfDef VORPLE_NOTIFICATIONS;
                 bp_output_stream(3, mystr, LEN_MYSTR);
                 print "^";
                 if (isVorpleSupported() == false) { print "["; }
