@@ -1,0 +1,48 @@
+html {
+	background-image: url("bg.jpg");
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-attachment: fixed;
+	background-size:cover;
+}
+
+body,
+#lineinput label,
+#lineinput input {
+    background-color: transparent;
+    color: #03d4c3;
+    font-family: 'Didact Gothic';
+	font-size: 125%;
+	-webkit-text-size-adjust: none;
+}
+
+.container {
+	margin-top: 2em;
+}
+
+#output, label, input {
+    background-color: #000;
+}
+
+#output {
+    border: 1px solid #ccc;
+    box-shadow: 2px 2px 3px #333;
+    margin: 15px auto;
+    max-width: 550px;
+    padding: 1em;
+}
+
+a {
+	text-decoration: none;
+	color: #f9108a;
+}
+
+a:visited {
+	text-decoration: none;
+	color: #e3b4db;
+}
+
+a:hover {
+	text-decoration: none;
+	color: #33C;
+}
