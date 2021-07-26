@@ -81,3 +81,8 @@ Class Convolver
     VorpleExecuteJavaScriptCommand(BuildCommand("Howler.masterGain.connect(window.convolver", o.identifier, ");"));
     VorpleExecuteJavaScriptCommand(BuildCommand("window.convolver", o.identifier, ".connect(Howler.ctx.destination);"));
 ];
+
+[ HowlerUnplugConvolver o;
+    VorpleExecuteJavaScriptCommand("Howler.masterGain.disconnect();");
+    VorpleExecuteJavaScriptCommand(BuildCommand("Howler.masterGain.connect(Howler.ctx.destination);"));
+];
